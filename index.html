@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FluidPro CISM Practice — Quiz & Results</title>
+  <style>
+    :root{--accent:#0b5ed7;--bg:#f7f9fc;--card:#fff}
+    body{font-family:Inter,system-ui,Segoe UI,Arial;background:var(--bg);margin:0;padding:24px;color:#222}
+    .container{max-width:960px;margin:0 auto}
+    header{display:flex;align-items:center;gap:16px}
+    h1{margin:0;font-size:20px}
+    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(20,30,50,0.06);margin-top:18px}
+    .meta{font-size:13px;color:#556}
+    .qbox{margin-top:14px}
+    .options button{display:block;width:100%;text-align:left;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #e6eef8;background:white}
+    .options button:hover{box-shadow:0 4px 12px rgba(11,94,215,0.06)}
+    .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,94,215,0.12)}
+    .result{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    pre{background:#f2f6fb;padding:12px;border-radius:8px;overflow:auto}
+    footer{margin-top:18px;color:#667;font-size:13px}
+    @media(max-width:700px){.result{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>FluidPro — CISM Practice Quiz</h1>
+        <div class="meta">Host on GitHub Pages — Single-file app. Final score, domain breakdown & reattempt option included.</div>
+      </div>
+    </header>
+
+    <div class="card" id="app">
+      <div id="startView">
+        <h2>How to use</h2>
+        <p class="meta">This lightweight quiz app loads questions from <code>/questions.json</code> if present in the same repository. If not found, the page will use a small built-in sample set. It supports scoring, domain breakdown and reattempt.</p>
+        <p><strong>Controls:</strong></p>
+        <ul>
+          <li>Start — begin quiz</li>
+          <li>Answer questions (single choice)</li>
+          <li>On completion you will see final scope and options to reattempt or review answers</li>
+        </ul>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" id="startBtn">Start Quiz</button>
+          <button class="btn ghost" id="loadSample">Load Sample Questions</button>
+          <a class="btn ghost" id="githubGuide" href="#guide">Hosting Guide</a>
+        </div>
+      </div>
+
+      <div id="quizView" style="display:none">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><strong id="progress">Q 1 / 1</strong></div>
+          <div class="meta">Domain: <span id="curDomain">-</span></div>
+        </div>
+
+        <div class="qbox">
+          <h3 id="qText">Question text</h3>
+          <div class="options" id="options"></div>
+        </div>
+
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn" id="nextBtn" disabled>Next</button>
+          <button class="btn ghost" id="quitBtn">Quit</button>
+        </div>
+      </div>
+
+      <div id="resultView" style="display:none">
+        <h2>Quiz Results</h2>
+        <div class="result">
+          <div class="card">
+            <h3 id="scoreText">Score: 0 / 0 (0%)</h3>
+            <p class="meta" id="timeTaken">Time taken: 0s</p>
+            <div style="margin-top:12px">
+              <button class="btn" id="reattempt">Reattempt Quiz</button>
+              <button class="btn ghost" id="reviewBtn">Review Answers</button>
+              <button class="btn ghost" id="downloadBtn">Download Results (CSV)</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h4>Domain Breakdown</h4>
+            <div id="domainBreakdown"></div>
+          </div>
+        </div>
+
+        <div style="margin-top:12px">
+          <h4>Final Scope (Suggested next steps)</h4>
+          <ul id="finalScope">
+            <li>Review weak domains identified above.</li>
+            <li>Reattempt focused quizzes for domains with &lt;60% score.</li>
+            <li>Create a study plan: daily 30–45 minutes, practice MCQs + review rationales.</li>
+          </ul>
+        </div>
+
+      </div>
+
+      <div id="reviewView" style="display:none">
+        <h3>Review: Answers & Explanations</h3>
+        <div id="reviewList"></div>
+        <div style="margin-top:12px"><button class="btn" id="backToResult">Back</button></div>
+      </div>
+    </div>
+
+    <div class="card" id="guide">
+      <h3>GitHub Pages Hosting Guide</h3>
+      <ol>
+        <li>Create a new public GitHub repository (example: <code>cism-quiz</code>).</li>
+        <li>Upload this file as <code>index.html</code>. If you have a <code>questions.json</code> (the 500 MCQs exported to JSON), upload it to the repo root.</li>
+        <li>Commit and push. Then go to <code>Settings → Pages</code> and select the <code>main</code> branch and root folder to publish. After a minute your site will be available at <code>https://&lt;your-username&gt;.github.io/&lt;repo-name&gt;/</code>.</li>
+        <li>To use a custom domain, add the domain in Pages settings and create a CNAME record pointing to <code>&lt;your-username&gt;.github.io</code>. For apex domains, use ALIAS/ANAME as per your DNS provider.</li>
+        <li>If you upload a <code>questions.json</code>, the app will automatically load it. Format expected: an array of objects: <code>[{id:1,domain:'Domain 1',question:'Q text',options:['A','B','C','D'],answer:'A'}]</code>.</li>
+      </ol>
+      <p class="meta">Need help converting your Excel file to JSON? I can provide the conversion script and instructions.</p>
+    </div>
+
+    <footer>
+      Built for FluidPro. Want the app to support 500 questions, timed tests, or auto-grading in GitHub Actions? Tell me which feature to add next.
+    </footer>
+  </div>
+
+<script>
+// Basic quiz engine. Loads /questions.json if present, else uses sampleQuestions.
+let questions = [];
+let state = { index:0, score:0, answers:[], startTs:0 };
+const sampleQuestions = [
+  {id:1, domain:'Domain 1', question:'What is the primary purpose of information security governance?', options:['Ensure security supports business objectives','Implement technical controls','Perform daily backups','Restrict user access'], answer:'A'},
+  {id:2, domain:'Domain 2', question:'What is residual risk?', options:['Risk remaining after controls are applied','Risk before controls','Risk transferred to insurer','Risk that can be ignored'], answer:'A'},
+  {id:3, domain:'Domain 3', question:'Which control reduces likelihood of an incident?', options:['Preventive control','Detective control','Corrective control','Compensating control'], answer:'A'},
+  {id:4, domain:'Domain 4', question:'Which metric defines acceptable time to recover?', options:['RTO','RPO','MTTD','MTTR'], answer:'A'}
+];
+
+async function loadQuestions(){
+  try{
+    const resp = await fetch('./questions.json');
+    if(!resp.ok) throw new Error('no questions.json');
+    const data = await resp.json();
+    if(!Array.isArray(data) || data.length===0) throw new Error('invalid format');
+    questions = data.map((q,i)=>({id:q.id||i+1, domain:q.domain||'Unknown', question:q.question||q.text, options:q.options||q.choices||[], answer:q.answer||q.correct}));
+    console.log('Loaded',questions.length,'questions from questions.json');
+  }catch(err){
+    console.warn('Using sample questions. To load full set, upload questions.json to the repo. Err:',err.message);
+    questions = sampleQuestions;
+  }
+}
+
+function showStart(){document.getElementById('startView').style.display='block';document.getElementById('quizView').style.display='none';document.getElementById('resultView').style.display='none';document.getElementById('reviewView').style.display='none'}
+function showQuiz(){document.getElementById('startView').style.display='none';document.getElementById('quizView').style.display='block';document.getElementById('resultView').style.display='none';document.getElementById('reviewView').style.display='none'}
+function showResult(){document.getElementById('startView').style.display='none';document.getElementById('quizView').style.display='none';document.getElementById('resultView').style.display='block';document.getElementById('reviewView').style.display='none'}
+function showReview(){document.getElementById('startView').style.display='none';document.getElementById('quizView').style.display='none';document.getElementById('resultView').style.display='none';document.getElementById('reviewView').style.display='block'}
+
+function renderQuestion(){
+  const q = questions[state.index];
+  document.getElementById('progress').innerText = `Q ${state.index+1} / ${questions.length}`;
+  document.getElementById('curDomain').innerText = q.domain || 'Unknown';
+  document.getElementById('qText').innerText = q.question;
+  const optsDiv = document.getElementById('options'); optsDiv.innerHTML='';
+  q.options.forEach((opt,i)=>{
+    const btn = document.createElement('button');
+    btn.innerText = String.fromCharCode(65+i)+'.  '+opt;
+    btn.onclick = ()=>selectOption(i);
+    btn.dataset.opt = String.fromCharCode(65+i);
+    optsDiv.appendChild(btn);
+  });
+  document.getElementById('nextBtn').disabled = true;
+}
+
+function selectOption(i){
+  // mark selection
+  const opts = document.querySelectorAll('#options button');
+  opts.forEach(b=>b.style.borderColor='#e6eef8');
+  const chosen = opts[i];
+  chosen.style.borderColor = 'var(--accent)';
+  chosen.style.boxShadow = '0 6px 18px rgba(11,94,215,0.08)';
+  document.getElementById('nextBtn').disabled = false;
+  state.currentSelection = chosen.dataset.opt;
+}
+
+function nextQuestion(){
+  const q = questions[state.index];
+  const sel = state.currentSelection || null;
+  const correct = q.answer;
+  const isCorrect = sel === correct;
+  if(isCorrect) state.score++;
+  state.answers.push({id:q.id, domain:q.domain, question:q.question, selected:sel, correct:correct, correctText: q.options[correct.charCodeAt(0)-65] || ''});
+  state.index++;
+  state.currentSelection = null;
+  if(state.index >= questions.length){
+    finishQuiz();
+  }else{
+    renderQuestion();
+  }
+}
+
+function finishQuiz(){
+  const endTs = Date.now();
+  const secs = Math.round((endTs - state.startTs)/1000);
+  document.getElementById('timeTaken').innerText = `Time taken: ${secs}s`;
+  document.getElementById('scoreText').innerText = `Score: ${state.score} / ${questions.length} (${Math.round(state.score/questions.length*100)}%)`;
+  // domain breakdown
+  const breakdown = {};
+  state.answers.forEach(a=>{
+    breakdown[a.domain] = breakdown[a.domain] || {total:0,correct:0};
+    breakdown[a.domain].total++;
+    if(a.selected === a.correct) breakdown[a.domain].correct++;
+  });
+  const dbDiv = document.getElementById('domainBreakdown'); dbDiv.innerHTML='';
+  for(const d of Object.keys(breakdown)){
+    const item = breakdown[d];
+    const pct = Math.round(item.correct/item.total*100);
+    const el = document.createElement('div');
+    el.innerHTML = `<strong>${d}</strong>: ${item.correct}/${item.total} (${pct}%)`;
+    dbDiv.appendChild(el);
+  }
+  // final scope suggestions
+  document.getElementById('finalScope').innerHTML = '';
+  Object.keys(breakdown).forEach(d=>{
+    const item = breakdown[d];
+    const pct = Math.round(item.correct/item.total*100);
+    const li = document.createElement('li');
+    if(pct < 60) li.innerText = `${d} — score ${pct}%. Recommend focused reattempts and deeper study.`;
+    else li.innerText = `${d} — score ${pct}%. Keep practicing for mastery.`;
+    document.getElementById('finalScope').appendChild(li);
+  });
+  showResult();
+}
+
+function resetAndStart(){
+  state = { index:0, score:0, answers:[], startTs:Date.now() };
+  showQuiz();
+  renderQuestion();
+}
+
+function downloadResults(){
+  let csv = 'QNo,Domain,Question,Selected,Correct\n';
+  state.answers.forEach((a,i)=>{
+    csv += `${i+1},"${a.domain}","${a.question.replace(/"/g,'""')}",${a.selected},${a.correct}\n`;
+  });
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href = url; a.download = 'quiz_results.csv'; a.click();
+  URL.revokeObjectURL(url);
+}
+
+function renderReview(){
+  const div = document.getElementById('reviewList'); div.innerHTML='';
+  state.answers.forEach((a,i)=>{
+    const el = document.createElement('div'); el.style.padding='8px'; el.style.borderBottom='1px solid #f1f5fa';
+    el.innerHTML = `<strong>Q${i+1} (${a.domain})</strong><div>${a.question}</div><div>Selected: ${a.selected} — Correct: ${a.correct}</div>`;
+    div.appendChild(el);
+  });
+}
+
+// event listeners
+document.getElementById('startBtn').addEventListener('click', async ()=>{
+  await loadQuestions(); state.startTs = Date.now(); resetAndStart();
+});
+
+document.getElementById('loadSample').addEventListener('click', ()=>{questions = sampleQuestions; state.startTs = Date.now(); resetAndStart();});
+
+document.getElementById('nextBtn').addEventListener('click', ()=>{nextQuestion();});
+
+document.getElementById('quitBtn').addEventListener('click', ()=>{if(confirm('Quit quiz and return to start?')) showStart();});
+
+document.getElementById('reattempt').addEventListener('click', ()=>{if(confirm('Reattempt the full quiz?')){resetAndStart();}});
+
+document.getElementById('downloadBtn').addEventListener('click', downloadResults);
+
+document.getElementById('reviewBtn').addEventListener('click', ()=>{renderReview(); showReview();});
+
+document.getElementById('backToResult').addEventListener('click', ()=>{showResult();});
+
+// initial
+showStart();
+</script>
+</body>
+</html>

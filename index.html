@@ -4,131 +4,141 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>FluidPro CISM Practice — Quiz & Results</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
   <style>
-    :root{--accent:#0b5ed7;--bg:#f7f9fc;--card:#fff}
-    body{font-family:Inter,system-ui,Segoe UI,Arial;background:var(--bg);margin:0;padding:24px;color:#222}
-    .container{max-width:960px;margin:0 auto}
+    :root{
+      --bg:#f3f7fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent:#2563eb;
+      --accent-2:#06b6d4;
+      --success:#10b981;
+      --danger:#ef4444;
+      --glass: rgba(255,255,255,0.6);
+    }
+    *{box-sizing:border-box}
+    body{font-family:Inter,system-ui,Segoe UI,Arial;background:linear-gradient(180deg,var(--bg),#eef6ff);margin:0;padding:28px;color:#0f172a}
+    .container{max-width:1100px;margin:0 auto}
     header{display:flex;align-items:center;gap:16px}
-    h1{margin:0;font-size:20px}
-    .card{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(20,30,50,0.06);margin-top:18px}
-    .meta{font-size:13px;color:#556}
-    .qbox{margin-top:14px}
-    .options button{display:block;width:100%;text-align:left;padding:12px;margin:8px 0;border-radius:8px;border:1px solid #e6eef8;background:white}
-    .options button:hover{box-shadow:0 4px 12px rgba(11,94,215,0.06)}
-    .btn{background:var(--accent);color:#fff;padding:10px 14px;border-radius:8px;border:none;cursor:pointer}
-    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,94,215,0.12)}
-    .result{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    pre{background:#f2f6fb;padding:12px;border-radius:8px;overflow:auto}
-    footer{margin-top:18px;color:#667;font-size:13px}
-    @media(max-width:700px){.result{grid-template-columns:1fr}}
+    h1{margin:0;font-size:22px}
+    .meta{font-size:13px;color:var(--muted)}
+    .topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+    .card{background:var(--card);padding:18px;border-radius:14px;box-shadow:0 8px 30px rgba(13,38,76,0.06);margin-top:12px}
+
+    /* Two-column question layout */
+    .quiz-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
+    @media(max-width:980px){.quiz-grid{grid-template-columns:1fr}}
+
+    .qcard{border-radius:12px;padding:14px;background:linear-gradient(180deg,var(--glass),#fff);border:1px solid rgba(37,99,235,0.06);position:relative}
+    .qmeta{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:var(--muted);font-size:13px}
+    .qtext{font-weight:600;margin:8px 0 12px 0}
+    .options button{display:block;width:100%;text-align:left;padding:10px;margin:8px 0;border-radius:10px;border:1px solid #eef2ff;background:transparent;cursor:pointer}
+    .options button:hover{background:rgba(37,99,235,0.04);border-color:rgba(37,99,235,0.12)}
+    .options button.selected{border-color:var(--accent);box-shadow:0 8px 20px rgba(37,99,235,0.08)}
+    .timer-badge{position:absolute;top:12px;right:12px;background:linear-gradient(90deg,var(--accent),var(--accent-2));color:#fff;padding:6px 8px;border-radius:8px;font-weight:600;font-size:13px}
+    .timer-badge.slow{background:linear-gradient(90deg,#f59e0b,#f97316)}
+    .timer-badge.expired{background:linear-gradient(90deg,var(--danger),#c026d3)}
+
+    .controls{display:flex;gap:10px;margin-top:12px}
+    .btn{background:var(--accent);color:#fff;padding:9px 14px;border-radius:10px;border:none;cursor:pointer}
+    .ghost{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,0.12)}
+    .small{padding:8px 10px;font-size:14px}
+
+    .result-grid{display:grid;grid-template-columns:1fr 340px;gap:18px}
+    @media(max-width:980px){.result-grid{grid-template-columns:1fr}}
+
+    .domain-list div{padding:8px 10px;border-radius:8px;margin-bottom:8px;background:#fbfdff;border:1px solid rgba(6,182,212,0.06)}
+
+    footer{margin-top:18px;color:var(--muted);font-size:13px}
   </style>
 </head>
 <body>
   <div class="container">
-    <header>
+    <div class="topbar">
       <div>
         <h1>FluidPro — CISM Practice Quiz</h1>
-        <div class="meta">Host on GitHub Pages — Single-file app. Final score, domain breakdown & reattempt option included.</div>
+        <div class="meta">Interactive practice — two questions at a time • final score, domain breakdown, reattempt & review.</div>
       </div>
-    </header>
+      <div style="display:flex;gap:12px;align-items:center">
+        <div class="meta">Questions: <strong id="totalCount">0</strong></div>
+        <div id="globalClock" class="meta" style="font-weight:700;background:#fff;padding:8px 10px;border-radius:10px;box-shadow:0 6px 18px rgba(11,94,215,0.06)">00:00</div>
+      </div>
+    </div>
 
     <div class="card" id="app">
       <div id="startView">
-        <h2>How to use</h2>
-        <p class="meta">This lightweight quiz app loads questions from <code>/questions.json</code> if present in the same repository. If not found, the page will use a small built-in sample set. It supports scoring, domain breakdown and reattempt.</p>
-        <p><strong>Controls:</strong></p>
-        <ul>
-          <li>Start — begin quiz</li>
-          <li>Answer questions (single choice)</li>
-          <li>On completion you will see final scope and options to reattempt or review answers</li>
-        </ul>
-        <div style="display:flex;gap:8px;margin-top:12px">
+        <h3 style="margin:0 0 8px 0">How to use</h3>
+        <p class="meta" style="margin:0 0 12px 0">Click <strong>Start Quiz</strong> to begin. Two questions show simultaneously — each question has a 45-second limit. When a question's 45s expire it locks and cannot be answered. Answer both and click <strong>Next</strong> to continue.</p>
+        <div style="display:flex;gap:8px">
           <button class="btn" id="startBtn">Start Quiz</button>
-          <button class="btn ghost" id="loadSample">Load Sample Questions</button>
-          <a class="btn ghost" id="githubGuide" href="#guide">Hosting Guide</a>
+          <button class="ghost small" id="loadSample">Load Sample</button>
         </div>
       </div>
 
       <div id="quizView" style="display:none">
-        <div style="display:flex;justify-content:space-between;align-items:center">
-          <div><strong id="progress">Q 1 / 1</strong></div>
-          <div class="meta">Domain: <span id="curDomain">-</span></div>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+          <div class="qmeta"> <strong id="progress">Q 1 - 2 / 0</strong> <span style="margin-left:12px;color:var(--muted)">Answered: <span id="answeredCount">0</span></span></div>
+          <div class="qmeta">Domain: <span id="curDomain">All</span></div>
         </div>
 
-        <div class="qbox">
-          <h3 id="qText">Question text</h3>
-          <div class="options" id="options"></div>
-        </div>
+        <div class="quiz-grid" id="grid"></div>
 
-        <div style="display:flex;gap:8px;margin-top:12px">
+        <div class="controls">
           <button class="btn" id="nextBtn" disabled>Next</button>
-          <button class="btn ghost" id="quitBtn">Quit</button>
+          <button class="ghost small" id="quitBtn">Quit</button>
+          <div style="margin-left:auto;color:var(--muted);align-self:center">Page: <span id="pageInfo">0</span></div>
         </div>
       </div>
 
       <div id="resultView" style="display:none">
-        <h2>Quiz Results</h2>
-        <div class="result">
+        <h3>Results</h3>
+        <div class="result-grid">
           <div class="card">
-            <h3 id="scoreText">Score: 0 / 0 (0%)</h3>
-            <p class="meta" id="timeTaken">Time taken: 0s</p>
-            <div style="margin-top:12px">
-              <button class="btn" id="reattempt">Reattempt Quiz</button>
-              <button class="btn ghost" id="reviewBtn">Review Answers</button>
-              <button class="btn ghost" id="downloadBtn">Download Results (CSV)</button>
+            <h2 id="scoreText">0 / 0</h2>
+            <p class="meta" id="timeTaken">Time: 0s</p>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="btn" id="reattempt">Reattempt</button>
+              <button class="ghost small" id="reviewBtn">Review Answers</button>
+              <button class="ghost small" id="downloadBtn">Download CSV</button>
             </div>
           </div>
 
           <div class="card">
-            <h4>Domain Breakdown</h4>
-            <div id="domainBreakdown"></div>
+            <h4 style="margin-top:0">Domain Breakdown</h4>
+            <div id="domainBreakdown" class="domain-list"></div>
           </div>
         </div>
 
         <div style="margin-top:12px">
-          <h4>Final Scope (Suggested next steps)</h4>
-          <ul id="finalScope">
-            <li>Review weak domains identified above.</li>
-            <li>Reattempt focused quizzes for domains with &lt;60% score.</li>
-            <li>Create a study plan: daily 30–45 minutes, practice MCQs + review rationales.</li>
-          </ul>
+          <h4>Suggested Next Steps</h4>
+          <ul id="finalScope"></ul>
         </div>
-
       </div>
 
-      <div id="reviewView" style="display:none">
-        <h3>Review: Answers & Explanations</h3>
+      <div id="reviewView" style="display:none" class="card">
+        <h3>Review Answers (Wrong answers highlighted)</h3>
         <div id="reviewList"></div>
         <div style="margin-top:12px"><button class="btn" id="backToResult">Back</button></div>
       </div>
+
     </div>
 
-    <div class="card" id="guide">
-      <h3>GitHub Pages Hosting Guide</h3>
-      <ol>
-        <li>Create a new public GitHub repository (example: <code>cism-quiz</code>).</li>
-        <li>Upload this file as <code>index.html</code>. If you have a <code>questions.json</code> (the 500 MCQs exported to JSON), upload it to the repo root.</li>
-        <li>Commit and push. Then go to <code>Settings → Pages</code> and select the <code>main</code> branch and root folder to publish. After a minute your site will be available at <code>https://&lt;your-username&gt;.github.io/&lt;repo-name&gt;/</code>.</li>
-        <li>To use a custom domain, add the domain in Pages settings and create a CNAME record pointing to <code>&lt;your-username&gt;.github.io</code>. For apex domains, use ALIAS/ANAME as per your DNS provider.</li>
-        <li>If you upload a <code>questions.json</code>, the app will automatically load it. Format expected: an array of objects: <code>[{id:1,domain:'Domain 1',question:'Q text',options:['A','B','C','D'],answer:'A'}]</code>.</li>
-      </ol>
-      <p class="meta">Need help converting your Excel file to JSON? I can provide the conversion script and instructions.</p>
-    </div>
-
-    <footer>
-      Built for FluidPro. Want the app to support 500 questions, timed tests, or auto-grading in GitHub Actions? Tell me which feature to add next.
-    </footer>
+    <footer>Built for FluidPro. Want timed exam, randomized 60-question tests, or GitHub Actions auto-grading? Ask and I'll add it.</footer>
   </div>
 
 <script>
-// Basic quiz engine. Loads /questions.json if present, else uses sampleQuestions.
+// Loads ./questions.json or sample questions. Shows 2 questions per page. Each question has a 45s timer.
 let questions = [];
-let state = { index:0, score:0, answers:[], startTs:0 };
+let state = { pageIndex:0, score:0, answers:[], startTs:0, temp:{} };
+const pageSize = 2;
+const perQuestionLimit = 45; // seconds
+let globalTimerInterval;
+
 const sampleQuestions = [
-  {id:1, domain:'Domain 1', question:'What is the primary purpose of information security governance?', options:['Ensure security supports business objectives','Implement technical controls','Perform daily backups','Restrict user access'], answer:'A'},
-  {id:2, domain:'Domain 2', question:'What is residual risk?', options:['Risk remaining after controls are applied','Risk before controls','Risk transferred to insurer','Risk that can be ignored'], answer:'A'},
-  {id:3, domain:'Domain 3', question:'Which control reduces likelihood of an incident?', options:['Preventive control','Detective control','Corrective control','Compensating control'], answer:'A'},
-  {id:4, domain:'Domain 4', question:'Which metric defines acceptable time to recover?', options:['RTO','RPO','MTTD','MTTR'], answer:'A'}
+  {id:1,domain:'Domain 1',difficulty:'Easy',question:'What is the primary purpose of information security governance?',options:['Help ensure information security supports business objectives','Ensure technical configuration is perfect','Implement compensating controls','Review and update regularly'],answer:'A'},
+  {id:2,domain:'Domain 2',difficulty:'Easy',question:'What is residual risk?',options:['Risk remaining after controls are applied','Risk before controls','Risk transferred to insurer','Risk that can be ignored'],answer:'A'},
+  {id:3,domain:'Domain 3',difficulty:'Easy',question:'Which control reduces likelihood of an incident?',options:['Preventive control','Detective control','Corrective control','Compensating control'],answer:'A'},
+  {id:4,domain:'Domain 4',difficulty:'Easy',question:'Which metric defines acceptable time to recover?',options:['RTO','RPO','MTTD','MTTR'],answer:'A'}
 ];
 
 async function loadQuestions(){
@@ -136,12 +146,14 @@ async function loadQuestions(){
     const resp = await fetch('./questions.json');
     if(!resp.ok) throw new Error('no questions.json');
     const data = await resp.json();
-    if(!Array.isArray(data) || data.length===0) throw new Error('invalid format');
-    questions = data.map((q,i)=>({id:q.id||i+1, domain:q.domain||'Unknown', question:q.question||q.text, options:q.options||q.choices||[], answer:q.answer||q.correct}));
-    console.log('Loaded',questions.length,'questions from questions.json');
+    if(!Array.isArray(data) || data.length===0) throw new Error('invalid');
+    questions = data.map(q=>({id:q.id,domain:q.domain,question:q.question,options:q.options,answer:(q.answer||null)}));
+    document.getElementById('totalCount').innerText = questions.length;
+    console.log('Loaded',questions.length);
   }catch(err){
-    console.warn('Using sample questions. To load full set, upload questions.json to the repo. Err:',err.message);
+    console.warn('Using sample',err.message);
     questions = sampleQuestions;
+    document.getElementById('totalCount').innerText = questions.length;
   }
 }
 
@@ -150,129 +162,164 @@ function showQuiz(){document.getElementById('startView').style.display='none';do
 function showResult(){document.getElementById('startView').style.display='none';document.getElementById('quizView').style.display='none';document.getElementById('resultView').style.display='block';document.getElementById('reviewView').style.display='none'}
 function showReview(){document.getElementById('startView').style.display='none';document.getElementById('quizView').style.display='none';document.getElementById('resultView').style.display='none';document.getElementById('reviewView').style.display='block'}
 
-function renderQuestion(){
-  const q = questions[state.index];
-  document.getElementById('progress').innerText = `Q ${state.index+1} / ${questions.length}`;
-  document.getElementById('curDomain').innerText = q.domain || 'Unknown';
-  document.getElementById('qText').innerText = q.question;
-  const optsDiv = document.getElementById('options'); optsDiv.innerHTML='';
-  q.options.forEach((opt,i)=>{
-    const btn = document.createElement('button');
-    btn.innerText = String.fromCharCode(65+i)+'.  '+opt;
-    btn.onclick = ()=>selectOption(i);
-    btn.dataset.opt = String.fromCharCode(65+i);
-    optsDiv.appendChild(btn);
-  });
-  document.getElementById('nextBtn').disabled = true;
+function formatClock(seconds){ const mm = String(Math.floor(seconds/60)).padStart(2,'0'); const ss = String(seconds%60).padStart(2,'0'); return `${mm}:${ss}`; }
+
+function startGlobalClock(){ clearInterval(globalTimerInterval); state.startTs = Date.now(); globalTimerInterval = setInterval(()=>{ const secs = Math.round((Date.now()-state.startTs)/1000); document.getElementById('globalClock').innerText = formatClock(secs); },1000); }
+
+let perQuestionTimers = {}; // map qi -> remaining seconds
+let perQuestionIntervals = {}; // qi -> interval id
+
+function startPerQuestionTimer(qi, badgeEl){
+  // initialize
+  perQuestionTimers[qi] = perQuestionLimit;
+  badgeEl.innerText = perQuestionTimers[qi] + 's';
+  badgeEl.classList.remove('slow','expired');
+  perQuestionIntervals[qi] = setInterval(()=>{
+    perQuestionTimers[qi]--; badgeEl.innerText = perQuestionTimers[qi] + 's';
+    if(perQuestionTimers[qi] <= 10) badgeEl.classList.add('slow');
+    if(perQuestionTimers[qi] <= 0){
+      clearInterval(perQuestionIntervals[qi]); badgeEl.classList.remove('slow'); badgeEl.classList.add('expired');
+      // lock question: disable buttons if not already answered
+      lockQuestion(qi);
+      // enable Next if other visible answered/expired
+      document.getElementById('nextBtn').disabled = !areAllVisibleFinalized();
+    }
+  },1000);
 }
 
-function selectOption(i){
-  // mark selection
-  const opts = document.querySelectorAll('#options button');
-  opts.forEach(b=>b.style.borderColor='#e6eef8');
-  const chosen = opts[i];
-  chosen.style.borderColor = 'var(--accent)';
-  chosen.style.boxShadow = '0 6px 18px rgba(11,94,215,0.08)';
-  document.getElementById('nextBtn').disabled = false;
-  state.currentSelection = chosen.dataset.opt;
-}
+function stopPerQuestionTimer(qi){ if(perQuestionIntervals[qi]){ clearInterval(perQuestionIntervals[qi]); delete perQuestionIntervals[qi]; } }
 
-function nextQuestion(){
-  const q = questions[state.index];
-  const sel = state.currentSelection || null;
-  const correct = q.answer;
-  const isCorrect = sel === correct;
-  if(isCorrect) state.score++;
-  state.answers.push({id:q.id, domain:q.domain, question:q.question, selected:sel, correct:correct, correctText: q.options[correct.charCodeAt(0)-65] || ''});
-  state.index++;
-  state.currentSelection = null;
-  if(state.index >= questions.length){
-    finishQuiz();
-  }else{
-    renderQuestion();
+function lockQuestion(qi){ // mark as expired if no selection
+  const btns = document.querySelectorAll(`button[data-qi='${qi}']`);
+  const hasSelection = state.temp && state.temp[qi];
+  if(!hasSelection){
+    // visually disable
+    btns.forEach(b=>{ b.disabled = true; b.style.opacity = 0.7; });
+    // record as TIMED_OUT (we'll store as null selection)
+    state.temp[qi] = null;
   }
+}
+
+function areAllVisibleFinalized(){ const start = state.pageIndex * pageSize; const slice = questions.slice(start,start+pageSize); for(let i=0;i<slice.length;i++){ if(!(state.temp && (start+i in state.temp))) return false; } return true; }
+
+function renderPage(){
+  // stop any existing per-question timers for previous page
+  Object.keys(perQuestionIntervals).forEach(k=>{ clearInterval(perQuestionIntervals[k]); delete perQuestionIntervals[k]; });
+  perQuestionTimers = {};
+
+  const grid = document.getElementById('grid'); grid.innerHTML = '';
+  const start = state.pageIndex * pageSize;
+  const slice = questions.slice(start, start+pageSize);
+  document.getElementById('progress').innerText = `Q ${start+1} - ${Math.min(start+pageSize,questions.length)} / ${questions.length}`;
+  document.getElementById('pageInfo').innerText = `${state.pageIndex+1}`;
+  document.getElementById('answeredCount').innerText = state.answers.length;
+  if(slice.length===0){ finishQuiz(); return; }
+  const domainNames = new Set();
+  slice.forEach((q,slot)=>{
+    domainNames.add(q.domain || 'Unknown');
+    const qi = start+slot;
+    const card = document.createElement('div'); card.className='qcard';
+    const badge = document.createElement('div'); badge.className='timer-badge'; badge.innerText = perQuestionLimit + 's'; card.appendChild(badge);
+    card.innerHTML += `<div class="qmeta"> <div>Q${start+slot+1}</div><div class="meta">${q.domain||'General'}</div></div>`;
+    const qtext = document.createElement('div'); qtext.className='qtext'; qtext.innerText = q.question; card.appendChild(qtext);
+    const opts = document.createElement('div'); opts.className='options';
+    q.options.forEach((opt,i)=>{
+      const btn = document.createElement('button'); btn.innerText = String.fromCharCode(65+i)+'.  '+opt; btn.dataset.qi = qi; btn.dataset.opt = String.fromCharCode(65+i);
+      btn.onclick = ()=>{ selectOption(btn); };
+      opts.appendChild(btn);
+    });
+    card.appendChild(opts);
+    grid.appendChild(card);
+    // if previously answered (from state.temp) show selection and disable
+    if(state.temp && (qi in state.temp)){
+      const sel = state.temp[qi];
+      const btns = opts.querySelectorAll('button');
+      btns.forEach(b=>{ if(sel && b.dataset.opt === sel){ b.classList.add('selected'); } /* keep disabled so user can't change */ b.disabled = true; b.style.opacity = 0.8; });
+      badge.classList.add(sel===null? 'expired' : 'slow'); badge.innerText = sel===null? 'TIMED OUT' : 'Answered';
+    } else {
+      // start timer for this question
+      startPerQuestionTimer(qi, badge);
+    }
+  });
+  document.getElementById('curDomain').innerText = Array.from(domainNames).slice(0,2).join(', ');
+  // disable next until all visible finalized (answered or timed-out)
+  document.getElementById('nextBtn').disabled = !areAllVisibleFinalized();
+}
+
+function selectOption(btn){
+  const qi = Number(btn.dataset.qi); const opt = btn.dataset.opt;
+  // ignore if expired
+  if(perQuestionTimers[qi] !== undefined && perQuestionTimers[qi] <= 0) return;
+  // mark selection visually
+  const parent = btn.parentElement; Array.from(parent.children).forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  // record selection
+  state.temp[qi] = opt;
+  // stop timer for this question and visually disable buttons to prevent change
+  stopPerQuestionTimer(qi);
+  Array.from(parent.children).forEach(b=>{ b.disabled = true; b.style.opacity = 0.85; });
+  document.getElementById('nextBtn').disabled = !areAllVisibleFinalized();
+}
+
+function nextPage(){
+  const start = state.pageIndex * pageSize; const slice = questions.slice(start,start+pageSize);
+  slice.forEach((q,i)=>{
+    const qi = start+i; const sel = (state.temp && (qi in state.temp)) ? state.temp[qi] : null;
+    const correct = (q.answer||'').toUpperCase();
+    const isCorrect = (sel === correct);
+    if(isCorrect) state.score++;
+    // store full texts for review
+    const selectedText = (sel ? q.options[sel.charCodeAt(0)-65] : null);
+    const correctText = (correct ? q.options[correct.charCodeAt(0)-65] : null);
+    state.answers.push({id:q.id,domain:q.domain,question:q.question,selected:sel,selectedText:selectedText,correct:correct,correctText:correctText});
+  });
+  state.pageIndex++;
+  // render next page
+  if(state.pageIndex*pageSize >= questions.length){ finishQuiz(); } else { renderPage(); }
 }
 
 function finishQuiz(){
-  const endTs = Date.now();
-  const secs = Math.round((endTs - state.startTs)/1000);
-  document.getElementById('timeTaken').innerText = `Time taken: ${secs}s`;
-  document.getElementById('scoreText').innerText = `Score: ${state.score} / ${questions.length} (${Math.round(state.score/questions.length*100)}%)`;
+  // clear per question timers
+  Object.keys(perQuestionIntervals).forEach(k=>{ clearInterval(perQuestionIntervals[k]); });
+  clearInterval(globalTimerInterval);
+  const endTs = Date.now(); const secs = Math.round((endTs - state.startTs)/1000);
+  document.getElementById('timeTaken').innerText = `Time: ${formatClock(secs)}`;
+  document.getElementById('scoreText').innerText = `${state.score} / ${questions.length} (${Math.round(state.score/questions.length*100)}%)`;
   // domain breakdown
   const breakdown = {};
-  state.answers.forEach(a=>{
-    breakdown[a.domain] = breakdown[a.domain] || {total:0,correct:0};
-    breakdown[a.domain].total++;
-    if(a.selected === a.correct) breakdown[a.domain].correct++;
-  });
+  state.answers.forEach(a=>{ breakdown[a.domain]=breakdown[a.domain]||{total:0,correct:0}; breakdown[a.domain].total++; if(a.selected===a.correct) breakdown[a.domain].correct++; });
   const dbDiv = document.getElementById('domainBreakdown'); dbDiv.innerHTML='';
-  for(const d of Object.keys(breakdown)){
-    const item = breakdown[d];
-    const pct = Math.round(item.correct/item.total*100);
-    const el = document.createElement('div');
-    el.innerHTML = `<strong>${d}</strong>: ${item.correct}/${item.total} (${pct}%)`;
-    dbDiv.appendChild(el);
-  }
-  // final scope suggestions
-  document.getElementById('finalScope').innerHTML = '';
-  Object.keys(breakdown).forEach(d=>{
-    const item = breakdown[d];
-    const pct = Math.round(item.correct/item.total*100);
-    const li = document.createElement('li');
-    if(pct < 60) li.innerText = `${d} — score ${pct}%. Recommend focused reattempts and deeper study.`;
-    else li.innerText = `${d} — score ${pct}%. Keep practicing for mastery.`;
-    document.getElementById('finalScope').appendChild(li);
-  });
+  Object.keys(breakdown).forEach(d=>{ const it = breakdown[d]; const pct = Math.round(it.correct/it.total*100); const el = document.createElement('div'); el.innerHTML=`<strong>${d}</strong>: ${it.correct}/${it.total} (${pct}%)`; dbDiv.appendChild(el); });
+  // final scope
+  const fs = document.getElementById('finalScope'); fs.innerHTML='';
+  Object.keys(breakdown).forEach(d=>{ const it=breakdown[d]; const pct=Math.round(it.correct/it.total*100); const li=document.createElement('li'); li.innerText = pct<60 ? `${d} — ${pct}%. Focused reattempts recommended.` : `${d} — ${pct}%. Keep practicing.`; fs.appendChild(li); });
   showResult();
 }
 
-function resetAndStart(){
-  state = { index:0, score:0, answers:[], startTs:Date.now() };
-  showQuiz();
-  renderQuestion();
-}
+function resetAndStart(){ state = { pageIndex:0, score:0, answers:[], startTs:Date.now(), temp:{} }; startGlobalClock(); renderPage(); showQuiz(); }
 
-function downloadResults(){
-  let csv = 'QNo,Domain,Question,Selected,Correct\n';
-  state.answers.forEach((a,i)=>{
-    csv += `${i+1},"${a.domain}","${a.question.replace(/"/g,'""')}",${a.selected},${a.correct}\n`;
-  });
-  const blob = new Blob([csv],{type:'text/csv'});
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a'); a.href = url; a.download = 'quiz_results.csv'; a.click();
-  URL.revokeObjectURL(url);
-}
+function renderReview(){ const div = document.getElementById('reviewList'); div.innerHTML=''; state.answers.forEach((a,i)=>{ const el = document.createElement('div'); el.style.padding='10px'; el.style.borderBottom='1px solid #f1f5fa'; const wrong = a.selected !== a.correct; el.innerHTML = `<div style="display:flex;justify-content:space-between"><strong>Q${i+1} (${a.domain})</strong><div style="font-weight:700;color:${wrong? 'var(--danger)':'var(--success)'}">${wrong? 'WRONG':'CORRECT'}</div></div><div style="margin-top:6px">${a.question}</div><div style="margin-top:6px"><strong>Your answer:</strong> ${a.selectedText||'<em>No answer / Timed out</em>'}</div><div style="margin-top:6px"><strong>Correct answer:</strong> ${a.correctText||'<em>Not available</em>'}</div>`; if(wrong){ el.style.background='#fff7f7'; el.style.border='1px solid rgba(239,68,68,0.06)'; } else { el.style.background='#f7fffa'; el.style.border='1px solid rgba(16,185,129,0.06)'; } div.appendChild(el); }); showReview(); }
 
-function renderReview(){
-  const div = document.getElementById('reviewList'); div.innerHTML='';
-  state.answers.forEach((a,i)=>{
-    const el = document.createElement('div'); el.style.padding='8px'; el.style.borderBottom='1px solid #f1f5fa';
-    el.innerHTML = `<strong>Q${i+1} (${a.domain})</strong><div>${a.question}</div><div>Selected: ${a.selected} — Correct: ${a.correct}</div>`;
-    div.appendChild(el);
-  });
-}
+function downloadResults(){ let csv = 'QNo,Domain,Question,Selected,SelectedText,Correct,CorrectText
+'; state.answers.forEach((a,i)=>{ csv += `${i+1},"${a.domain}","${(a.question||'').replace(/"/g,'""')}",${a.selected||''},"${(a.selectedText||'').replace(/"/g,'""')}",${a.correct||''},"${(a.correctText||'').replace(/"/g,'""')}"
+`; }); const blob=new Blob([csv],{type:'text/csv'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='quiz_results.csv'; a.click(); URL.revokeObjectURL(url); }
 
-// event listeners
-document.getElementById('startBtn').addEventListener('click', async ()=>{
-  await loadQuestions(); state.startTs = Date.now(); resetAndStart();
-});
-
-document.getElementById('loadSample').addEventListener('click', ()=>{questions = sampleQuestions; state.startTs = Date.now(); resetAndStart();});
-
-document.getElementById('nextBtn').addEventListener('click', ()=>{nextQuestion();});
-
-document.getElementById('quitBtn').addEventListener('click', ()=>{if(confirm('Quit quiz and return to start?')) showStart();});
-
-document.getElementById('reattempt').addEventListener('click', ()=>{if(confirm('Reattempt the full quiz?')){resetAndStart();}});
-
+// events
+document.getElementById('startBtn').addEventListener('click', async ()=>{ await loadQuestions(); resetAndStart(); });
+document.getElementById('loadSample').addEventListener('click', ()=>{ questions = sampleQuestions; document.getElementById('totalCount').innerText = questions.length; resetAndStart(); });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ nextPage(); });
+document.getElementById('quitBtn').addEventListener('click', ()=>{ if(confirm('Quit and return to start?')) showStart(); });
+document.getElementById('reattempt').addEventListener('click', ()=>{ if(confirm('Reattempt the full quiz?')) resetAndStart(); });
 document.getElementById('downloadBtn').addEventListener('click', downloadResults);
+document.getElementById('reviewBtn').addEventListener('click', ()=>{ renderReview(); });
+document.getElementById('backToResult').addEventListener('click', ()=>{ showResult(); });
 
-document.getElementById('reviewBtn').addEventListener('click', ()=>{renderReview(); showReview();});
+// observe option selections to enable Next button
+const observer = new MutationObserver(()=>{ document.getElementById('nextBtn').disabled = !areAllVisibleFinalized(); document.getElementById('answeredCount').innerText = state.answers.length + Object.keys(state.temp||{}).filter(k=>state.temp[k]!==null).length; });
+observer.observe(document.getElementById('grid'),{childList:true,subtree:true});
 
-document.getElementById('backToResult').addEventListener('click', ()=>{showResult();});
-
-// initial
-showStart();
+// initial load
+loadQuestions(); showStart();
 </script>
 </body>
 </html>
